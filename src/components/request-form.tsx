@@ -1,24 +1,36 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar as CalendarIcon, Minus, Plus } from "lucide-react";
-import { format } from "date-fns";
+import { Calendar as CalendarIcon, Check, Minus, Plus, Eye } from "lucide-react";
+import { format, addDays } from "date-fns";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { DEAL_TYPES, TRADE_CLASSES } from "../utils/constants";
 
 const RequestForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     dealType: "",
     material: "",
     costCenter: "",
-    validityPeriod: undefined as Date | undefined,
+    validityStart: undefined as Date | undefined,
+    validityEnd: undefined as Date | undefined,
     discount: 0,
     availableBudget: "",
     totalEstimatedCost: "",
@@ -27,14 +39,36 @@ const RequestForm = () => {
     salesArea: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [dateSelectMode, setDateSelectMode] = useState<"start" | "end">("start");
+  const [submittedRequestId, setSubmittedRequestId] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleDateChange = (date: Date | undefined) => {
-    setFormData((prev) => ({ ...prev, validityPeriod: date }));
+    if (dateSelectMode === "start") {
+      setFormData((prev) => ({ 
+        ...prev, 
+        validityStart: date,
+        // If end date is before start date, set end date to start date + 30 days
+        validityEnd: prev.validityEnd && date && prev.validityEnd < date 
+          ? addDays(date, 30) 
+          : prev.validityEnd
+      }));
+      if (date) {
+        setDateSelectMode("end");
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, validityEnd: date }));
+      setIsDatePickerOpen(false);
+    }
   };
 
   const handleDiscountChange = (increment: boolean) => {
@@ -51,7 +85,8 @@ const RequestForm = () => {
       "dealType", 
       "material", 
       "costCenter", 
-      "validityPeriod", 
+      "validityStart",
+      "validityEnd",
       "availableBudget", 
       "totalEstimatedCost", 
       "searchOutlet", 
@@ -80,22 +115,20 @@ const RequestForm = () => {
     
     // Simulate API request
     setTimeout(() => {
+      const requestId = `REQ-${Math.floor(Math.random() * 10000)}`;
       toast.success("Request submitted successfully");
       setIsSubmitting(false);
+      setSubmittedRequestId(requestId);
       
-      // Reset form
-      setFormData({
-        dealType: "",
-        material: "",
-        costCenter: "",
-        validityPeriod: undefined,
-        discount: 0,
-        availableBudget: "",
-        totalEstimatedCost: "",
-        searchOutlet: "",
-        classOfTrade: "",
-        salesArea: "",
-      });
+      // Store in local storage for demo purposes
+      const existingRequests = JSON.parse(localStorage.getItem("hawk_eye_requests") || "[]");
+      const newRequest = {
+        id: requestId,
+        ...formData,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem("hawk_eye_requests", JSON.stringify([...existingRequests, newRequest]));
     }, 1500);
   };
 
@@ -110,6 +143,10 @@ const RequestForm = () => {
     setTimeout(() => {
       toast.success("Simulation complete. Estimated profitability: +15%");
     }, 1500);
+  };
+
+  const handleViewRequests = () => {
+    navigate("/my-requests");
   };
 
   const formFields = [
@@ -140,7 +177,7 @@ const RequestForm = () => {
     {
       id: "validityPeriod",
       label: "Validity Period",
-      type: "date",
+      type: "daterange",
       required: true,
       colSpan: 1,
     },
@@ -193,6 +230,16 @@ const RequestForm = () => {
     },
   ];
 
+  const getDateRangeText = () => {
+    if (formData.validityStart && formData.validityEnd) {
+      return `${format(formData.validityStart, "yyyy-MM-dd")} to ${format(formData.validityEnd, "yyyy-MM-dd")}`;
+    }
+    if (formData.validityStart) {
+      return `From ${format(formData.validityStart, "yyyy-MM-dd")}`;
+    }
+    return "Select date range";
+  };
+
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
       <motion.div
@@ -220,48 +267,83 @@ const RequestForm = () => {
             </label>
 
             {field.type === "select" ? (
-              <select
-                id={field.id}
-                name={field.id}
+              <Select
                 value={formData[field.id as keyof typeof formData] as string}
-                onChange={handleInputChange}
-                className="hawk-input w-full"
-                required={field.required}
+                onValueChange={(value) => handleSelectChange(field.id, value)}
               >
-                <option value="">Select {field.label.toLowerCase()}</option>
-                {field.options?.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : field.type === "date" ? (
-              <Popover>
+                <SelectTrigger className="hawk-input w-full">
+                  <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {field.options?.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : field.type === "daterange" ? (
+              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <button
                     id={field.id}
                     type="button"
                     className={cn(
                       "hawk-input w-full text-left flex items-center justify-between",
-                      !formData.validityPeriod && "text-muted-foreground"
+                      !formData.validityStart && !formData.validityEnd && "text-muted-foreground"
                     )}
                   >
-                    {formData.validityPeriod ? (
-                      format(formData.validityPeriod, "PPP")
-                    ) : (
-                      <span>Select date</span>
-                    )}
+                    {getDateRangeText()}
                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.validityPeriod}
-                    onSelect={handleDateChange}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
+                  <div className="p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-sm">
+                        {dateSelectMode === "start" ? "Select start date" : "Select end date"}
+                      </h4>
+                      <Tabs value={dateSelectMode} onValueChange={(v) => setDateSelectMode(v as "start" | "end")}>
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="start">Start</TabsTrigger>
+                          <TabsTrigger value="end">End</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </div>
+                    <Calendar
+                      mode="single"
+                      selected={dateSelectMode === "start" ? formData.validityStart : formData.validityEnd}
+                      onSelect={handleDateChange}
+                      initialFocus
+                      disabled={
+                        dateSelectMode === "end" && formData.validityStart
+                          ? { before: formData.validityStart }
+                          : undefined
+                      }
+                      className="p-3 pointer-events-auto"
+                    />
+                    <div className="flex justify-between mt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsDatePickerOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          if (dateSelectMode === "start" && formData.validityStart) {
+                            setDateSelectMode("end");
+                          } else {
+                            setIsDatePickerOpen(false);
+                          }
+                        }}
+                      >
+                        {dateSelectMode === "start" ? "Next" : "Apply"}
+                      </Button>
+                    </div>
+                  </div>
                 </PopoverContent>
               </Popover>
             ) : field.type === "number" ? (
@@ -337,6 +419,17 @@ const RequestForm = () => {
         >
           Simulate
         </button>
+        
+        {submittedRequestId && (
+          <Button
+            type="button"
+            onClick={handleViewRequests}
+            variant="outline"
+            className="h-11 px-8 text-base font-medium flex gap-2 items-center"
+          >
+            <Eye size={16} /> View Requests
+          </Button>
+        )}
       </motion.div>
     </form>
   );

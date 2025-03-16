@@ -8,6 +8,8 @@ import { LazyMotion, domAnimation } from "framer-motion";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NewRequest from "./pages/NewRequest";
+import MyRequests from "./pages/MyRequests";
+import RequestStatus from "./pages/RequestStatus";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/new-request" element={<NewRequest />} />
+            <Route path="/my-requests" element={<MyRequests />} />
+            <Route path="/request-status" element={<RequestStatus />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
