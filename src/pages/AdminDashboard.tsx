@@ -2,9 +2,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, CheckCircle, Clock, Eye, User } from "lucide-react";
-import Navbar from "../components/navbar";
-import { isAuthenticated, getCurrentUser } from "../utils/auth";
+import { Users, CheckCircle, Clock, Eye, User, LogOut } from "lucide-react";
+import { isAuthenticated, getCurrentUser, logout } from "../utils/auth";
 import { AdminStats, getAdminStats } from "../utils/request-utils";
 import { Button } from "@/components/ui/button";
 
@@ -26,7 +25,9 @@ const AdminDashboard = () => {
     }
     
     // Load admin stats
-    setStats(getAdminStats());
+    const adminStats = getAdminStats();
+    console.log("Admin stats:", adminStats);
+    setStats(adminStats);
   }, [navigate, user]);
 
   // Format currency
@@ -37,14 +38,22 @@ const AdminDashboard = () => {
       maximumFractionDigits: 0
     }).format(amount);
   };
+  
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   if (!stats) {
     return (
       <>
-        <Navbar />
-        <div className="min-h-screen pt-24 pb-12 px-4">
-          <div className="container mx-auto max-w-6xl">
-            <div className="hawk-card p-8">
+        <div 
+          className="min-h-screen pt-16 pb-12 bg-cover bg-center"
+          style={{ backgroundImage: "url('/lovable-uploads/bfbef245-8604-4839-ab07-ed06fa15252e.png')" }}
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="container mx-auto max-w-6xl relative z-10 flex items-center justify-center h-screen">
+            <div className="hawk-card p-8 bg-white/90 backdrop-blur-sm">
               <p className="text-center">Loading...</p>
             </div>
           </div>
@@ -55,13 +64,29 @@ const AdminDashboard = () => {
 
   return (
     <>
-      <Navbar />
       <div 
-        className="min-h-screen pt-24 pb-12 px-4 bg-cover bg-center"
+        className="min-h-screen pt-16 pb-12 bg-cover bg-center"
         style={{ backgroundImage: "url('/lovable-uploads/bfbef245-8604-4839-ab07-ed06fa15252e.png')" }}
       >
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        <div className="container mx-auto max-w-6xl relative z-10">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        
+        {/* Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-white/10">
+          <div className="container mx-auto flex justify-between items-center h-16 px-4">
+            <h1 className="text-2xl font-bold text-hawk">Hawk Eye Admin</h1>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={handleLogout}
+              className="flex items-center gap-2"
+            >
+              <LogOut size={16} />
+              <span>Logout</span>
+            </Button>
+          </div>
+        </header>
+        
+        <div className="container mx-auto max-w-6xl relative z-10 pt-8">
           <motion.div 
             className="hawk-card p-8 bg-white/90 backdrop-blur-sm"
             initial={{ opacity: 0, y: 20 }}
@@ -131,7 +156,7 @@ const AdminDashboard = () => {
             
             <h2 className="text-2xl font-bold text-hawk mb-6">User Overview</h2>
             
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md border overflow-hidden bg-white">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -151,7 +176,7 @@ const AdminDashboard = () => {
                               <User className="h-5 w-5 text-white" />
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{userStat.name}</div>
+                              <div className="text-sm font-medium text-gray-900">{userStat.name || userStat.username}</div>
                               <div className="text-sm text-gray-500">{userStat.username}</div>
                             </div>
                           </div>
@@ -177,6 +202,7 @@ const AdminDashboard = () => {
                             variant="default" 
                             size="sm"
                             onClick={() => navigate(`/admin/user-requests/${userStat.userId}`)}
+                            className="flex items-center gap-2"
                           >
                             <Eye size={16} />
                             <span>View Requests</span>

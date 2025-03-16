@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Info, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Info, CheckCircle, XCircle, LogOut } from "lucide-react";
 import Navbar from "../components/navbar";
-import { isAuthenticated, getCurrentUser } from "../utils/auth";
+import { isAuthenticated, getCurrentUser, logout } from "../utils/auth";
 import { Request, getAllRequests, updateRequestStatus } from "../utils/request-utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ const UserRequests = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [actionType, setActionType] = useState<"approved" | "rejected" | null>(null);
   const user = getCurrentUser();
   
   useEffect(() => {
@@ -96,7 +96,7 @@ const UserRequests = () => {
     setDetailsOpen(true);
   };
   
-  const handleAction = (request: Request, type: "approve" | "reject") => {
+  const handleAction = (request: Request, type: "approved" | "rejected") => {
     setSelectedRequest(request);
     setActionType(type);
     setFeedbackOpen(true);
@@ -121,35 +121,54 @@ const UserRequests = () => {
       setActionType(null);
     }
   };
+  
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <>
-      <Navbar />
       <div 
-        className="min-h-screen pt-24 pb-12 px-4 bg-cover bg-center"
+        className="min-h-screen pt-16 pb-12 bg-cover bg-center"
         style={{ backgroundImage: "url('/lovable-uploads/bfbef245-8604-4839-ab07-ed06fa15252e.png')" }}
       >
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        <div className="container mx-auto max-w-6xl relative z-10">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        
+        {/* Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-white/10">
+          <div className="container mx-auto flex justify-between items-center h-16 px-4">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-2 text-white/80 hover:text-white"
+              >
+                <ArrowLeft size={18} />
+                <span>Back to Overview</span>
+              </Button>
+              <h1 className="text-xl font-bold text-hawk ml-4">User Requests</h1>
+            </div>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={handleLogout}
+              className="flex items-center gap-2"
+            >
+              <LogOut size={16} />
+              <span>Logout</span>
+            </Button>
+          </div>
+        </header>
+        
+        <div className="container mx-auto max-w-6xl relative z-10 pt-8">
           <motion.div 
             className="hawk-card p-8 bg-white/90 backdrop-blur-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="flex items-center gap-2 mb-6">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate("/admin")}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft size={16} />
-                Back to Overview
-              </Button>
-              <h1 className="text-2xl font-bold text-hawk ml-4">User Requests</h1>
-            </div>
-            
             {userInfo && (
               <div className="mb-6 p-4 bg-hawk-100 rounded-lg">
                 <h2 className="text-xl font-semibold">
@@ -208,7 +227,7 @@ const UserRequests = () => {
                                 variant="ghost" 
                                 size="icon"
                                 className="text-green-600"
-                                onClick={() => handleAction(request, "approve")}
+                                onClick={() => handleAction(request, "approved")}
                               >
                                 <CheckCircle size={16} />
                               </Button>
@@ -216,7 +235,7 @@ const UserRequests = () => {
                                 variant="ghost" 
                                 size="icon"
                                 className="text-red-600"
-                                onClick={() => handleAction(request, "reject")}
+                                onClick={() => handleAction(request, "rejected")}
                               >
                                 <XCircle size={16} />
                               </Button>
@@ -325,7 +344,7 @@ const UserRequests = () => {
           <DialogHeader>
             <DialogTitle>Add Feedback</DialogTitle>
             <DialogDescription>
-              {actionType === 'approve' ? 'Approve' : 'Reject'} this request with optional feedback
+              {actionType === 'approved' ? 'Approve' : 'Reject'} this request with optional feedback
             </DialogDescription>
           </DialogHeader>
           
@@ -343,10 +362,10 @@ const UserRequests = () => {
               Cancel
             </Button>
             <Button
-              variant={actionType === 'approve' ? 'default' : 'destructive'}
+              variant={actionType === 'approved' ? 'default' : 'destructive'}
               onClick={handleSubmitAction}
             >
-              {actionType === 'approve' ? 'Approve' : 'Reject'}
+              {actionType === 'approved' ? 'Approve' : 'Reject'}
             </Button>
           </DialogFooter>
         </DialogContent>

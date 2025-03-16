@@ -1,6 +1,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "sonner";
+import { getCurrentUser } from "./auth";
 
 export interface Request {
   id: string;
@@ -25,16 +26,23 @@ export interface Request {
 // Save a new request to localStorage
 export const saveRequest = (request: Omit<Request, 'id' | 'createdAt' | 'status' | 'submittedForApproval'>): Request => {
   const storedRequests: Request[] = JSON.parse(localStorage.getItem('hawk_eye_requests') || '[]');
+  const currentUser = getCurrentUser();
+  
+  if (!currentUser) {
+    throw new Error("User not authenticated");
+  }
   
   const newRequest: Request = {
     ...request,
     id: uuidv4(),
+    userId: currentUser.id,
     createdAt: new Date().toISOString(),
     status: 'pending',
     submittedForApproval: false
   };
   
   localStorage.setItem('hawk_eye_requests', JSON.stringify([...storedRequests, newRequest]));
+  console.log("Saved request:", newRequest);
   return newRequest;
 };
 
@@ -70,30 +78,44 @@ export const updateRequestStatus = (
   feedback?: string
 ): boolean => {
   const storedRequests: Request[] = JSON.parse(localStorage.getItem('hawk_eye_requests') || '[]');
-  const updatedRequests = storedRequests.map(request => 
-    request.id === requestId 
-      ? { ...request, status, feedback } 
-      : request
-  );
   
-  localStorage.setItem('hawk_eye_requests', JSON.stringify(updatedRequests));
+  // Find the request in question
+  const requestIndex = storedRequests.findIndex(req => req.id === requestId);
+  
+  if (requestIndex === -1) {
+    toast.error("Request not found");
+    return false;
+  }
+  
+  // Update the request
+  storedRequests[requestIndex] = {
+    ...storedRequests[requestIndex],
+    status,
+    feedback
+  };
+  
+  localStorage.setItem('hawk_eye_requests', JSON.stringify(storedRequests));
   toast.success(`Request ${status}`);
+  console.log("Updated request:", storedRequests[requestIndex]);
   return true;
 };
 
 // Calculate stats for admin dashboard
+export interface UserStat {
+  userId: string;
+  username: string;
+  name?: string;
+  totalBudget: number;
+  pendingCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+}
+
 export interface AdminStats {
   totalUsers: number;
   activeDeals: number;
   pendingApprovals: number;
-  userStats: {
-    userId: string;
-    username: string;
-    totalBudget: number;
-    pendingCount: number;
-    approvedCount: number;
-    rejectedCount: number;
-  }[];
+  userStats: UserStat[];
 }
 
 export const getAdminStats = (): AdminStats => {
@@ -125,11 +147,14 @@ export const getAdminStats = (): AdminStats => {
       rejectedCount
     };
   });
-  
-  return {
+
+  const stats = {
     totalUsers: salesReps.length,
     activeDeals: requests.filter(req => req.status === 'approved').length,
     pendingApprovals: requests.filter(req => req.status === 'pending' && req.submittedForApproval).length,
     userStats
   };
+  
+  console.log("Generated admin stats:", stats);
+  return stats;
 };

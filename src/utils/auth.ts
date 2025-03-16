@@ -47,6 +47,9 @@ export const login = (username: string, password: string): Promise<User | null> 
       sessionStorage.setItem("hawk_eye_users", JSON.stringify(users));
       sessionStorage.setItem("hawk_eye_user", JSON.stringify(userWithId));
       
+      // Save users to localStorage as well to make it persistent
+      localStorage.setItem("hawk_eye_persistent_user", JSON.stringify(userWithId));
+      
       toast.success(`Welcome back, ${userWithId.name}!`);
       resolve(userWithId);
     }, 800); // Simulate network delay
@@ -57,6 +60,7 @@ export const login = (username: string, password: string): Promise<User | null> 
 export const logout = (): void => {
   currentUser = null;
   sessionStorage.removeItem("hawk_eye_user");
+  localStorage.removeItem("hawk_eye_persistent_user");
   toast.success("You have been logged out");
 };
 
@@ -66,9 +70,19 @@ export const getCurrentUser = (): User | null => {
     return currentUser;
   }
   
+  // First try to get from session storage
   const storedUser = sessionStorage.getItem("hawk_eye_user");
   if (storedUser) {
     currentUser = JSON.parse(storedUser);
+    return currentUser;
+  }
+  
+  // If not in session storage, try from localStorage for persistence
+  const persistentUser = localStorage.getItem("hawk_eye_persistent_user");
+  if (persistentUser) {
+    currentUser = JSON.parse(persistentUser);
+    // Restore to session storage too
+    sessionStorage.setItem("hawk_eye_user", persistentUser);
     return currentUser;
   }
   
