@@ -1,6 +1,7 @@
 
 import { User, USERS, MOCK_PASSWORDS } from "./constants";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from 'uuid';
 
 // Simple auth state
 let currentUser: User | null = null;
@@ -24,14 +25,30 @@ export const login = (username: string, password: string): Promise<User | null> 
         return;
       }
       
+      // Add ID if not present
+      const userWithId = {
+        ...user,
+        id: user.id || uuidv4()
+      };
+      
       // Set current user
-      currentUser = user;
+      currentUser = userWithId;
       
       // Store in session storage
-      sessionStorage.setItem("hawk_eye_user", JSON.stringify(user));
+      const users = JSON.parse(sessionStorage.getItem("hawk_eye_users") || "[]");
+      const existingUserIndex = users.findIndex((u: User) => u.username === userWithId.username);
       
-      toast.success(`Welcome back, ${user.name}!`);
-      resolve(user);
+      if (existingUserIndex >= 0) {
+        users[existingUserIndex] = userWithId;
+      } else {
+        users.push(userWithId);
+      }
+      
+      sessionStorage.setItem("hawk_eye_users", JSON.stringify(users));
+      sessionStorage.setItem("hawk_eye_user", JSON.stringify(userWithId));
+      
+      toast.success(`Welcome back, ${userWithId.name}!`);
+      resolve(userWithId);
     }, 800); // Simulate network delay
   });
 };

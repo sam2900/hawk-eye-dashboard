@@ -27,12 +27,12 @@ const Dashboard = () => {
       showTo: ["sales_rep"]
     },
     {
-      title: "View Pending Requests",
+      title: "View My Requests",
       description: "Check status of your submitted requests",
       action: "View Requests",
-      path: "/repository",
+      path: "/my-requests",
       color: "bg-gradient-to-br from-blue-500 to-blue-700",
-      showTo: ["sales_rep", "district_manager"]
+      showTo: ["sales_rep"]
     },
     {
       title: "Sales Insights",
@@ -43,10 +43,10 @@ const Dashboard = () => {
       showTo: ["sales_rep", "district_manager"]
     },
     {
-      title: "Approve Requests",
-      description: "Review and approve pending requests",
-      action: "Approve",
-      path: "/repository",
+      title: "Admin Dashboard",
+      description: "View and manage user requests",
+      action: "Go to Admin",
+      path: "/admin",
       color: "bg-gradient-to-br from-green-500 to-green-700",
       showTo: ["district_manager"]
     }

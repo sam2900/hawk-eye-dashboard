@@ -11,6 +11,8 @@ import NewRequest from "./pages/NewRequest";
 import MyRequests from "./pages/MyRequests";
 import RequestStatus from "./pages/RequestStatus";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
+import UserRequests from "./pages/UserRequests";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,8 @@ const App = () => (
             <Route path="/new-request" element={<NewRequest />} />
             <Route path="/my-requests" element={<MyRequests />} />
             <Route path="/request-status" element={<RequestStatus />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/user-requests/:userId" element={<UserRequests />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
