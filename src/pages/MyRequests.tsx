@@ -2,36 +2,30 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CheckSquare, FileText, Eye, ArrowLeft } from "lucide-react";
+import { CheckSquare, FileText, Eye, ArrowLeft, Info } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "../components/navbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { isAuthenticated, getCurrentUser } from "../utils/auth";
-
-interface Request {
-  id: string;
-  dealType: string;
-  material: string;
-  costCenter: string;
-  validityStart: string;
-  validityEnd: string;
-  discount: number;
-  availableBudget: string;
-  totalEstimatedCost: string;
-  searchOutlet: string;
-  classOfTrade: string;
-  salesArea: string;
-  status: string;
-  createdAt: string;
-}
+import { Request, getUserRequests, submitRequestForApproval } from "../utils/request-utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const MyRequests = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<Request[]>([]);
   const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const user = getCurrentUser();
   
   useEffect(() => {
@@ -43,11 +37,14 @@ const MyRequests = () => {
     
     if (user && user.role !== "sales_rep") {
       navigate("/dashboard");
+      return;
     }
     
-    // Fetch requests from local storage (for demo)
-    const storedRequests = JSON.parse(localStorage.getItem("hawk_eye_requests") || "[]");
-    setRequests(storedRequests);
+    // Fetch requests from local storage
+    if (user) {
+      const userRequests = getUserRequests(user.id);
+      setRequests(userRequests);
+    }
   }, [navigate, user]);
 
   const handleCheckboxChange = (id: string) => {
@@ -60,7 +57,10 @@ const MyRequests = () => {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedRequests(requests.map(request => request.id));
+      const pendingRequests = requests
+        .filter(request => request.status === "pending" && !request.submittedForApproval)
+        .map(request => request.id);
+      setSelectedRequests(pendingRequests);
     } else {
       setSelectedRequests([]);
     }
@@ -74,26 +74,41 @@ const MyRequests = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API request
-    setTimeout(() => {
-      // Update requests in local storage
-      const updatedRequests = requests.map(request => 
-        selectedRequests.includes(request.id)
-          ? { ...request, status: "under review" }
-          : request
-      );
-      
-      localStorage.setItem("hawk_eye_requests", JSON.stringify(updatedRequests));
-      setRequests(updatedRequests);
-      setSelectedRequests([]);
-      setIsSubmitting(false);
-      
-      toast.success(`${selectedRequests.length} request(s) sent for approval`);
-    }, 1500);
+    // Process each selected request
+    const promises = selectedRequests.map(requestId => 
+      submitRequestForApproval(requestId)
+    );
+    
+    // After all requests are processed
+    Promise.all(promises)
+      .then(() => {
+        // Update local state
+        const updatedRequests = requests.map(request => 
+          selectedRequests.includes(request.id)
+            ? { ...request, submittedForApproval: true }
+            : request
+        );
+        
+        setRequests(updatedRequests);
+        setSelectedRequests([]);
+        toast.success(`${selectedRequests.length} request(s) sent for approval`);
+      })
+      .catch(error => {
+        console.error("Error submitting requests:", error);
+        toast.error("Failed to submit some requests");
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   const handleViewStatus = () => {
     navigate("/request-status");
+  };
+
+  const handleShowDetails = (request: Request) => {
+    setSelectedRequest(request);
+    setDetailsOpen(true);
   };
 
   const getValidityPeriod = (start: string, end: string) => {
@@ -110,8 +125,7 @@ const MyRequests = () => {
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+      minute: '2-digit'
     }).format(date);
   };
 
@@ -169,7 +183,7 @@ const MyRequests = () => {
                       <TableRow>
                         <TableHead className="w-12">
                           <Checkbox 
-                            checked={selectedRequests.length === requests.length && requests.length > 0}
+                            checked={selectedRequests.length > 0 && selectedRequests.length === requests.filter(r => r.status === "pending" && !r.submittedForApproval).length}
                             onCheckedChange={handleSelectAll}
                           />
                         </TableHead>
@@ -179,9 +193,8 @@ const MyRequests = () => {
                         <TableHead>Cost Center</TableHead>
                         <TableHead>Discount</TableHead>
                         <TableHead>Budget</TableHead>
-                        <TableHead>Est. Cost</TableHead>
-                        <TableHead>Outlet</TableHead>
-                        <TableHead>Trade Class</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -191,7 +204,7 @@ const MyRequests = () => {
                             <Checkbox 
                               checked={selectedRequests.includes(request.id)}
                               onCheckedChange={() => handleCheckboxChange(request.id)}
-                              disabled={request.status !== "pending"}
+                              disabled={request.status !== "pending" || request.submittedForApproval}
                             />
                           </TableCell>
                           <TableCell>{request.dealType}</TableCell>
@@ -200,9 +213,31 @@ const MyRequests = () => {
                           <TableCell>{request.costCenter}</TableCell>
                           <TableCell>₹{request.discount}</TableCell>
                           <TableCell>₹{request.availableBudget}</TableCell>
-                          <TableCell>₹{request.totalEstimatedCost}</TableCell>
-                          <TableCell>{request.searchOutlet}</TableCell>
-                          <TableCell>{request.classOfTrade}</TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              request.submittedForApproval && request.status === "pending" 
+                                ? 'bg-yellow-100 text-yellow-800' 
+                                : request.status === 'approved' 
+                                ? 'bg-green-100 text-green-800' 
+                                : request.status === 'rejected' 
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {request.submittedForApproval && request.status === "pending" 
+                                ? 'Under Review' 
+                                : request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleShowDetails(request)}
+                              className="h-8 w-8"
+                            >
+                              <Info size={16} />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -236,6 +271,92 @@ const MyRequests = () => {
           </motion.div>
         </div>
       </div>
+      
+      {/* Request Details Dialog */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request Details</DialogTitle>
+            <DialogDescription>
+              Created {selectedRequest && formatDate(selectedRequest.createdAt)}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRequest && (
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Deal Type:</h4>
+                <p className="text-sm">{selectedRequest.dealType}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Material:</h4>
+                <p className="text-sm">{selectedRequest.material}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Validity Period:</h4>
+                <p className="text-sm">{getValidityPeriod(selectedRequest.validityStart, selectedRequest.validityEnd)}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Cost Center:</h4>
+                <p className="text-sm">{selectedRequest.costCenter}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Discount:</h4>
+                <p className="text-sm">₹{selectedRequest.discount}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Available Budget:</h4>
+                <p className="text-sm">₹{selectedRequest.availableBudget}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Total Estimated Cost:</h4>
+                <p className="text-sm">₹{selectedRequest.totalEstimatedCost}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Search Outlet:</h4>
+                <p className="text-sm">{selectedRequest.searchOutlet}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Class of Trade:</h4>
+                <p className="text-sm">{selectedRequest.classOfTrade}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">Sales Area:</h4>
+                <p className="text-sm">{selectedRequest.salesArea}</p>
+              </div>
+              <div className="col-span-2">
+                <h4 className="text-sm font-semibold mb-1">Status:</h4>
+                <p className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                  selectedRequest.submittedForApproval && selectedRequest.status === "pending" 
+                    ? 'bg-yellow-100 text-yellow-800' 
+                    : selectedRequest.status === 'approved' 
+                    ? 'bg-green-100 text-green-800' 
+                    : selectedRequest.status === 'rejected' 
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {selectedRequest.submittedForApproval && selectedRequest.status === "pending" 
+                    ? 'Under Review' 
+                    : selectedRequest.status.charAt(0).toUpperCase() + selectedRequest.status.slice(1)}
+                </p>
+              </div>
+              
+              {selectedRequest.feedback && (
+                <div className="col-span-2">
+                  <h4 className="text-sm font-semibold mb-1">Feedback:</h4>
+                  <p className="text-sm bg-gray-50 p-2 rounded">{selectedRequest.feedback}</p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailsOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

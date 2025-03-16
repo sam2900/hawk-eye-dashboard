@@ -22,10 +22,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { DEAL_TYPES, TRADE_CLASSES } from "../utils/constants";
+import { saveRequest } from "../utils/request-utils";
 
 const RequestForm = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     dealType: "",
     material: "",
     costCenter: "",
@@ -37,7 +38,9 @@ const RequestForm = () => {
     searchOutlet: "",
     classOfTrade: "",
     salesArea: "",
-  });
+  };
+  
+  const [formData, setFormData] = useState(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [dateSelectMode, setDateSelectMode] = useState<"start" | "end">("start");
@@ -113,23 +116,30 @@ const RequestForm = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API request
-    setTimeout(() => {
-      const requestId = `REQ-${Math.floor(Math.random() * 10000)}`;
-      toast.success("Request submitted successfully");
-      setIsSubmitting(false);
-      setSubmittedRequestId(requestId);
-      
-      // Store in local storage for demo purposes
-      const existingRequests = JSON.parse(localStorage.getItem("hawk_eye_requests") || "[]");
-      const newRequest = {
-        id: requestId,
+    try {
+      // Convert dates to ISO strings for storage
+      const requestData = {
         ...formData,
-        status: "pending",
-        createdAt: new Date().toISOString(),
+        validityStart: formData.validityStart ? formData.validityStart.toISOString() : '',
+        validityEnd: formData.validityEnd ? formData.validityEnd.toISOString() : '',
       };
-      localStorage.setItem("hawk_eye_requests", JSON.stringify([...existingRequests, newRequest]));
-    }, 1500);
+      
+      // Save request to localStorage
+      const savedRequest = saveRequest(requestData);
+      
+      toast.success("Request created successfully");
+      setSubmittedRequestId(savedRequest.id);
+      
+      // Reset form after successful submission
+      setFormData(initialFormState);
+      setDateSelectMode("start");
+      
+    } catch (error) {
+      console.error("Error saving request:", error);
+      toast.error("Failed to create request");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSimulate = () => {

@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Info, CheckCircle, XCircle, LogOut } from "lucide-react";
-import Navbar from "../components/navbar";
 import { isAuthenticated, getCurrentUser, logout } from "../utils/auth";
 import { Request, getAllRequests, updateRequestStatus } from "../utils/request-utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 interface UserInfo {
   id: string;
@@ -35,6 +35,8 @@ const UserRequests = () => {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [actionType, setActionType] = useState<"approved" | "rejected" | null>(null);
+  const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
+  const [bulkActionOpen, setBulkActionOpen] = useState(false);
   const user = getCurrentUser();
   
   useEffect(() => {
@@ -54,6 +56,11 @@ const UserRequests = () => {
       return;
     }
     
+    loadUserRequests();
+    
+  }, [navigate, user, userId]);
+  
+  const loadUserRequests = () => {
     // Get all requests and filter for this user
     const allRequests = getAllRequests();
     const userRequests = allRequests.filter(req => req.userId === userId && req.submittedForApproval);
@@ -65,13 +72,13 @@ const UserRequests = () => {
     if (userInfo) {
       setUserInfo({
         id: userInfo.id,
-        name: userInfo.name,
+        name: userInfo.name || userInfo.username,
         username: userInfo.username
       });
     } else {
       navigate("/admin");
     }
-  }, [navigate, user, userId]);
+  };
 
   const getValidityPeriod = (start: string, end: string) => {
     const startDate = new Date(start);
@@ -102,6 +109,35 @@ const UserRequests = () => {
     setFeedbackOpen(true);
   };
   
+  const handleBulkAction = (type: "approved" | "rejected") => {
+    if (selectedRequests.length === 0) {
+      toast.error("Please select at least one request");
+      return;
+    }
+    
+    setActionType(type);
+    setBulkActionOpen(true);
+  };
+  
+  const handleCheckboxChange = (id: string) => {
+    setSelectedRequests(prev => 
+      prev.includes(id) 
+        ? prev.filter(requestId => requestId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const pendingRequests = requests
+        .filter(request => request.status === "pending")
+        .map(request => request.id);
+      setSelectedRequests(pendingRequests);
+    } else {
+      setSelectedRequests([]);
+    }
+  };
+  
   const handleSubmitAction = () => {
     if (selectedRequest && actionType) {
       updateRequestStatus(selectedRequest.id, actionType, feedback);
@@ -120,6 +156,32 @@ const UserRequests = () => {
       setFeedback("");
       setActionType(null);
     }
+  };
+  
+  const handleSubmitBulkAction = () => {
+    if (!actionType || selectedRequests.length === 0) return;
+    
+    // Process each selected request
+    selectedRequests.forEach(requestId => {
+      updateRequestStatus(requestId, actionType, feedback);
+    });
+    
+    // Update local state
+    setRequests(prev => 
+      prev.map(req => 
+        selectedRequests.includes(req.id) 
+          ? { ...req, status: actionType, feedback } 
+          : req
+      )
+    );
+    
+    // Reset state
+    setBulkActionOpen(false);
+    setFeedback("");
+    setActionType(null);
+    setSelectedRequests([]);
+    
+    toast.success(`${selectedRequests.length} requests ${actionType}`);
   };
   
   const handleLogout = () => {
@@ -178,11 +240,43 @@ const UserRequests = () => {
               </div>
             )}
             
+            {/* Bulk actions */}
+            {selectedRequests.length > 0 && (
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
+                <p className="text-sm">{selectedRequests.length} requests selected</p>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="text-green-600"
+                    onClick={() => handleBulkAction("approved")}
+                  >
+                    <CheckCircle size={16} className="mr-2" />
+                    Approve All
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="text-red-600"
+                    onClick={() => handleBulkAction("rejected")}
+                  >
+                    <XCircle size={16} className="mr-2" />
+                    Reject All
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             <div className="rounded-md border mb-6 overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">Select</TableHead>
+                    <TableHead className="w-12">
+                      <Checkbox 
+                        checked={selectedRequests.length > 0 && selectedRequests.length === requests.filter(r => r.status === "pending").length}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead>Deal Type</TableHead>
                     <TableHead>Material</TableHead>
                     <TableHead>Validity</TableHead>
@@ -197,7 +291,12 @@ const UserRequests = () => {
                     requests.map((request) => (
                       <TableRow key={request.id}>
                         <TableCell>
-                          <Checkbox id={`select-${request.id}`} />
+                          <Checkbox 
+                            id={`select-${request.id}`} 
+                            checked={selectedRequests.includes(request.id)}
+                            onCheckedChange={() => handleCheckboxChange(request.id)}
+                            disabled={request.status !== "pending"}
+                          />
                         </TableCell>
                         <TableCell>{request.dealType}</TableCell>
                         <TableCell>{request.material}</TableCell>
@@ -366,6 +465,39 @@ const UserRequests = () => {
               onClick={handleSubmitAction}
             >
               {actionType === 'approved' ? 'Approve' : 'Reject'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Bulk Action Dialog */}
+      <Dialog open={bulkActionOpen} onOpenChange={setBulkActionOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Bulk {actionType === 'approved' ? 'Approve' : 'Reject'}</DialogTitle>
+            <DialogDescription>
+              {actionType === 'approved' ? 'Approve' : 'Reject'} {selectedRequests.length} requests with the same feedback
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Textarea
+              placeholder="Enter feedback for these requests..."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setBulkActionOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant={actionType === 'approved' ? 'default' : 'destructive'}
+              onClick={handleSubmitBulkAction}
+            >
+              {actionType === 'approved' ? 'Approve All' : 'Reject All'}
             </Button>
           </DialogFooter>
         </DialogContent>
