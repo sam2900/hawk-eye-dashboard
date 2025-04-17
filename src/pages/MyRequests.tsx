@@ -27,19 +27,19 @@ const MyRequests = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const user = getCurrentUser();
-  
+
   useEffect(() => {
     // If not authenticated or not a sales rep, redirect
     if (!isAuthenticated()) {
       navigate("/login");
       return;
     }
-    
+
     if (user && user.role !== "sales_rep") {
       navigate("/dashboard");
       return;
     }
-    
+
     // Fetch requests from local storage
     if (user) {
       const userRequests = getUserRequests(user.id);
@@ -48,8 +48,8 @@ const MyRequests = () => {
   }, [navigate, user]);
 
   const handleCheckboxChange = (id: string) => {
-    setSelectedRequests(prev => 
-      prev.includes(id) 
+    setSelectedRequests(prev =>
+      prev.includes(id)
         ? prev.filter(requestId => requestId !== id)
         : [...prev, id]
     );
@@ -71,24 +71,24 @@ const MyRequests = () => {
       toast.error("Please select at least one request to send for approval");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     // Process each selected request
-    const promises = selectedRequests.map(requestId => 
+    const promises = selectedRequests.map(requestId =>
       submitRequestForApproval(requestId)
     );
-    
+
     // After all requests are processed
     Promise.all(promises)
       .then(() => {
         // Update local state
-        const updatedRequests = requests.map(request => 
+        const updatedRequests = requests.map(request =>
           selectedRequests.includes(request.id)
             ? { ...request, submittedForApproval: true }
             : request
         );
-        
+
         setRequests(updatedRequests);
         setSelectedRequests([]);
         toast.success(`${selectedRequests.length} request(s) sent for approval`);
@@ -114,10 +114,10 @@ const MyRequests = () => {
   const getValidityPeriod = (start: string, end: string) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    
+
     return `${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`;
   };
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-GB', {
@@ -132,13 +132,16 @@ const MyRequests = () => {
   return (
     <>
       <Navbar />
-      <div 
+      <div
         className="min-h-screen pt-24 pb-12 px-4 bg-cover bg-center"
-        style={{ backgroundImage: "url('/lovable-uploads/f85bc74a-85e1-4bd0-9581-e467472dcb2c.png')" }}
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1572177200344-496ea8c15e1f?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", backgroundRepeat: 'no-repeat',
+
+        }}
       >
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        <div className="container mx-auto max-w-6xl relative z-10">
-          <motion.div 
+        <div className="absolute inset-0 bg-black/40 " />
+        <div className="container mx-auto max-w-6xl relative z-10" style={{ opacity: "0.9" }}>
+          <motion.div
             className="hawk-card p-8 bg-white/90 backdrop-blur-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -146,9 +149,9 @@ const MyRequests = () => {
           >
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => navigate("/dashboard")}
                   className="flex items-center gap-2"
                 >
@@ -167,7 +170,7 @@ const MyRequests = () => {
                 View Status
               </Button>
             </div>
-            
+
             {requests.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -182,7 +185,7 @@ const MyRequests = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">
-                          <Checkbox 
+                          <Checkbox
                             checked={selectedRequests.length > 0 && selectedRequests.length === requests.filter(r => r.status === "pending" && !r.submittedForApproval).length}
                             onCheckedChange={handleSelectAll}
                           />
@@ -201,7 +204,7 @@ const MyRequests = () => {
                       {requests.map((request) => (
                         <TableRow key={request.id}>
                           <TableCell>
-                            <Checkbox 
+                            <Checkbox
                               checked={selectedRequests.includes(request.id)}
                               onCheckedChange={() => handleCheckboxChange(request.id)}
                               disabled={request.status !== "pending" || request.submittedForApproval}
@@ -214,23 +217,22 @@ const MyRequests = () => {
                           <TableCell>₹{request.discount}</TableCell>
                           <TableCell>₹{request.availableBudget}</TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              request.submittedForApproval && request.status === "pending" 
-                                ? 'bg-yellow-100 text-yellow-800' 
-                                : request.status === 'approved' 
-                                ? 'bg-green-100 text-green-800' 
-                                : request.status === 'rejected' 
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {request.submittedForApproval && request.status === "pending" 
-                                ? 'Under Review' 
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.submittedForApproval && request.status === "pending"
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : request.status === 'approved'
+                                ? 'bg-green-100 text-green-800'
+                                : request.status === 'rejected'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                              {request.submittedForApproval && request.status === "pending"
+                                ? 'Under Review'
                                 : request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               onClick={() => handleShowDetails(request)}
                               className="h-8 w-8"
@@ -243,7 +245,7 @@ const MyRequests = () => {
                     </TableBody>
                   </Table>
                 </div>
-                
+
                 <div className="flex justify-center">
                   <Button
                     onClick={handleSendForApproval}
@@ -271,7 +273,7 @@ const MyRequests = () => {
           </motion.div>
         </div>
       </div>
-      
+
       {/* Request Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="sm:max-w-md">
@@ -281,7 +283,7 @@ const MyRequests = () => {
               Created {selectedRequest && formatDate(selectedRequest.createdAt)}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedRequest && (
             <div className="grid grid-cols-2 gap-4 py-4">
               <div>
@@ -326,21 +328,20 @@ const MyRequests = () => {
               </div>
               <div className="col-span-2">
                 <h4 className="text-sm font-semibold mb-1">Status:</h4>
-                <p className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                  selectedRequest.submittedForApproval && selectedRequest.status === "pending" 
-                    ? 'bg-yellow-100 text-yellow-800' 
-                    : selectedRequest.status === 'approved' 
-                    ? 'bg-green-100 text-green-800' 
-                    : selectedRequest.status === 'rejected' 
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {selectedRequest.submittedForApproval && selectedRequest.status === "pending" 
-                    ? 'Under Review' 
+                <p className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${selectedRequest.submittedForApproval && selectedRequest.status === "pending"
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : selectedRequest.status === 'approved'
+                    ? 'bg-green-100 text-green-800'
+                    : selectedRequest.status === 'rejected'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                  {selectedRequest.submittedForApproval && selectedRequest.status === "pending"
+                    ? 'Under Review'
                     : selectedRequest.status.charAt(0).toUpperCase() + selectedRequest.status.slice(1)}
                 </p>
               </div>
-              
+
               {selectedRequest.feedback && (
                 <div className="col-span-2">
                   <h4 className="text-sm font-semibold mb-1">Feedback:</h4>
@@ -349,7 +350,7 @@ const MyRequests = () => {
               )}
             </div>
           )}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDetailsOpen(false)}>
               Close

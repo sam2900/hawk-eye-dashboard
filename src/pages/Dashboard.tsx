@@ -9,7 +9,7 @@ import { isAuthenticated, getCurrentUser } from "../utils/auth";
 const Dashboard = () => {
   const navigate = useNavigate();
   const user = getCurrentUser();
-  
+
   useEffect(() => {
     // If not authenticated, redirect to login
     if (!isAuthenticated()) {
@@ -74,7 +74,12 @@ const Dashboard = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-hawk-pattern pt-24 pb-12 px-4">
+      <div className="min-h-screen bg-hawk-pattern pt-24 pb-12 px-4 bg-cover bg-center"
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1436076863939-06870fe779c2?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", backgroundRepeat: 'no-repeat',
+
+        }}
+      >
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -139,7 +144,7 @@ const Dashboard = () => {
                   </span>
                 </div>
               </div>
-              
+
               <div className="p-4 rounded-lg bg-secondary/50 border border-border">
                 <div className="flex items-center justify-between">
                   <div>
@@ -151,7 +156,7 @@ const Dashboard = () => {
                   </span>
                 </div>
               </div>
-              
+
               <div className="p-4 rounded-lg bg-secondary/50 border border-border">
                 <div className="flex items-center justify-between">
                   <div>

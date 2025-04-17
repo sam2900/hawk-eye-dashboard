@@ -35,18 +35,18 @@ const RequestStatus = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<Request[]>([]);
   const user = getCurrentUser();
-  
+
   useEffect(() => {
     // If not authenticated or not a sales rep, redirect
     if (!isAuthenticated()) {
       navigate("/login");
       return;
     }
-    
+
     if (user && user.role !== "sales_rep") {
       navigate("/dashboard");
     }
-    
+
     // Fetch requests from local storage (for demo)
     const storedRequests = JSON.parse(localStorage.getItem("hawk_eye_requests") || "[]");
     setRequests(storedRequests);
@@ -55,10 +55,10 @@ const RequestStatus = () => {
   const getValidityPeriod = (start: string, end: string) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    
+
     return `${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`;
   };
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-GB', {
@@ -69,7 +69,7 @@ const RequestStatus = () => {
       minute: '2-digit'
     }).format(date);
   };
-  
+
   const getStatusBadgeClass = (status: string) => {
     switch (status.toLowerCase()) {
       case 'approved':
@@ -86,22 +86,25 @@ const RequestStatus = () => {
   return (
     <>
       <Navbar />
-      <div 
+      <div
         className="min-h-screen pt-24 pb-12 px-4 bg-cover bg-center"
-        style={{ backgroundImage: "url('/lovable-uploads/f85bc74a-85e1-4bd0-9581-e467472dcb2c.png')" }}
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1508341103935-e8d7aa7d4815?q=80&w=3546&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", backgroundRepeat: 'no-repeat',
+
+        }}
       >
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        <div className="container mx-auto max-w-6xl relative z-10">
-          <motion.div 
+        <div className="container mx-auto max-w-6xl relative z-10" style={{ opacity: "0.9" }}>
+          <motion.div
             className="hawk-card p-8 bg-white/90 backdrop-blur-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             <div className="flex items-center gap-2 mb-6">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => navigate("/my-requests")}
                 className="flex items-center gap-2"
               >
@@ -110,7 +113,7 @@ const RequestStatus = () => {
               </Button>
               <h1 className="text-2xl font-bold text-hawk ml-4">Request Status</h1>
             </div>
-            
+
             <div className="rounded-md border mb-6">
               <Table>
                 <TableHeader>

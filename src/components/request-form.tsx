@@ -32,14 +32,14 @@ const RequestForm = () => {
     costCenter: "",
     validityStart: undefined as Date | undefined,
     validityEnd: undefined as Date | undefined,
-    discount: 0,
+    discount: 20,
     availableBudget: "",
     totalEstimatedCost: "",
     searchOutlet: "",
     classOfTrade: "",
     salesArea: "",
   };
-  
+
   const [formData, setFormData] = useState(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -57,12 +57,12 @@ const RequestForm = () => {
 
   const handleDateChange = (date: Date | undefined) => {
     if (dateSelectMode === "start") {
-      setFormData((prev) => ({ 
-        ...prev, 
+      setFormData((prev) => ({
+        ...prev,
         validityStart: date,
         // If end date is before start date, set end date to start date + 30 days
-        validityEnd: prev.validityEnd && date && prev.validityEnd < date 
-          ? addDays(date, 30) 
+        validityEnd: prev.validityEnd && date && prev.validityEnd < date
+          ? addDays(date, 30)
           : prev.validityEnd
       }));
       if (date) {
@@ -77,45 +77,45 @@ const RequestForm = () => {
   const handleDiscountChange = (increment: boolean) => {
     setFormData((prev) => ({
       ...prev,
-      discount: increment 
-        ? Math.min(prev.discount + 1, 100) 
-        : Math.max(prev.discount - 1, 0)
+      discount: increment
+        ? Math.min(prev.discount + 20, 100)
+        : Math.max(prev.discount - 20, 0)
     }));
   };
 
   const validateForm = (): boolean => {
     const requiredFields = [
-      "dealType", 
-      "material", 
-      "costCenter", 
+      "dealType",
+      "material",
+      "costCenter",
       "validityStart",
       "validityEnd",
-      "availableBudget", 
-      "totalEstimatedCost", 
-      "searchOutlet", 
-      "classOfTrade", 
+      "availableBudget",
+      "totalEstimatedCost",
+      "searchOutlet",
+      "classOfTrade",
       "salesArea"
     ];
 
     const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
-    
+
     if (missingFields.length > 0) {
       toast.error("Please fill in all required fields");
       return false;
     }
-    
+
     return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Convert dates to ISO strings for storage
       const requestData = {
@@ -123,17 +123,17 @@ const RequestForm = () => {
         validityStart: formData.validityStart ? formData.validityStart.toISOString() : '',
         validityEnd: formData.validityEnd ? formData.validityEnd.toISOString() : '',
       };
-      
+
       // Save request to localStorage
       const savedRequest = saveRequest(requestData);
-      
+
       toast.success("Request created successfully");
       setSubmittedRequestId(savedRequest.id);
-      
+
       // Reset form after successful submission
       setFormData(initialFormState);
       setDateSelectMode("start");
-      
+
     } catch (error) {
       console.error("Error saving request:", error);
       toast.error("Failed to create request");
@@ -146,9 +146,9 @@ const RequestForm = () => {
     if (!validateForm()) {
       return;
     }
-    
+
     toast.info("Simulation in progress...");
-    
+
     // Simulate API request
     setTimeout(() => {
       toast.success("Simulation complete. Estimated profitability: +15%");
@@ -420,7 +420,7 @@ const RequestForm = () => {
             "Submit Request"
           )}
         </button>
-        
+
         <button
           type="button"
           onClick={handleSimulate}
@@ -429,7 +429,7 @@ const RequestForm = () => {
         >
           Simulate
         </button>
-        
+
         {submittedRequestId && (
           <Button
             type="button"

@@ -84,14 +84,14 @@ export const APP_ROUTES: Route[] = [
     roles: ["sales_rep"]
   },
   {
-    path: "/insights",
-    label: "Insights",
+    path: "/my-requests",
+    label: "View Request",
     icon: "BarChart2",
     roles: ["sales_rep", "district_manager"]
   },
   {
-    path: "/repository",
-    label: "Repository",
+    path: "/request-status",
+    label: "View Status",
     icon: "Database",
     roles: ["sales_rep", "district_manager"]
   }

@@ -7,7 +7,7 @@ import { isAuthenticated } from "../utils/auth";
 
 const Login = () => {
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     // If already authenticated, redirect to dashboard
     if (isAuthenticated()) {
@@ -18,7 +18,7 @@ const Login = () => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-hawk-hero bg-cover bg-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      
+
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -27,8 +27,8 @@ const Login = () => {
       >
         <LoginForm />
       </motion.div>
-      
-      <motion.div 
+
+      <motion.div
         className="absolute bottom-4 text-white/60 text-xs"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
