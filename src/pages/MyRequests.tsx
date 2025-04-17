@@ -214,8 +214,8 @@ const MyRequests = () => {
                           <TableCell>{request.material}</TableCell>
                           <TableCell>{getValidityPeriod(request.validityStart, request.validityEnd)}</TableCell>
                           <TableCell>{request.costCenter}</TableCell>
-                          <TableCell>₹{request.discount}</TableCell>
-                          <TableCell>₹{request.availableBudget}</TableCell>
+                          <TableCell>{request.discount}(R/HL)</TableCell>
+                          <TableCell>{request.availableBudget}(R/HL)</TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.submittedForApproval && request.status === "pending"
                               ? 'bg-yellow-100 text-yellow-800'
@@ -304,15 +304,15 @@ const MyRequests = () => {
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-1">Discount:</h4>
-                <p className="text-sm">₹{selectedRequest.discount}</p>
+                <p className="text-sm">{selectedRequest.discount}(R/HL)</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-1">Available Budget:</h4>
-                <p className="text-sm">₹{selectedRequest.availableBudget}</p>
+                <p className="text-sm">{selectedRequest.availableBudget}(R/HL)</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-1">Total Estimated Cost:</h4>
-                <p className="text-sm">₹{selectedRequest.totalEstimatedCost}</p>
+                <p className="text-sm">{selectedRequest.totalEstimatedCost}(R/HL)</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-1">Search Outlet:</h4>

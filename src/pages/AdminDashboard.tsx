@@ -11,19 +11,19 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const user = getCurrentUser();
-  
+
   useEffect(() => {
     // If not authenticated or not a district manager, redirect
     if (!isAuthenticated()) {
       navigate("/login");
       return;
     }
-    
+
     if (user && user.role !== "district_manager") {
       navigate("/dashboard");
       return;
     }
-    
+
     // Load admin stats
     const adminStats = getAdminStats();
     console.log("Admin stats:", adminStats);
@@ -38,7 +38,7 @@ const AdminDashboard = () => {
       maximumFractionDigits: 0
     }).format(amount);
   };
-  
+
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -47,9 +47,12 @@ const AdminDashboard = () => {
   if (!stats) {
     return (
       <>
-        <div 
+        <div
           className="min-h-screen pt-16 pb-12 bg-cover bg-center"
-          style={{ backgroundImage: "url('/lovable-uploads/bfbef245-8604-4839-ab07-ed06fa15252e.png')" }}
+          style={{
+            backgroundImage: "url('https://images.unsplash.com/photo-1572177200344-496ea8c15e1f?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", backgroundRepeat: 'no-repeat',
+
+          }}
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div className="container mx-auto max-w-6xl relative z-10 flex items-center justify-center h-screen">
@@ -64,18 +67,21 @@ const AdminDashboard = () => {
 
   return (
     <>
-      <div 
+      <div
         className="min-h-screen pt-16 pb-12 bg-cover bg-center"
-        style={{ backgroundImage: "url('/lovable-uploads/bfbef245-8604-4839-ab07-ed06fa15252e.png')" }}
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1572177200344-496ea8c15e1f?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", backgroundRepeat: 'no-repeat',
+
+        }}
       >
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        
+
         {/* Header */}
         <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-white/10">
           <div className="container mx-auto flex justify-between items-center h-16 px-4">
             <h1 className="text-2xl font-bold text-hawk">Hawk Eye Admin</h1>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               size="sm"
               onClick={handleLogout}
               className="flex items-center gap-2"
@@ -85,18 +91,18 @@ const AdminDashboard = () => {
             </Button>
           </div>
         </header>
-        
+
         <div className="container mx-auto max-w-6xl relative z-10 pt-8">
-          <motion.div 
+          <motion.div
             className="hawk-card p-8 bg-white/90 backdrop-blur-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             <h1 className="text-3xl font-bold text-hawk mb-8">System Overview</h1>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              <motion.div 
+              <motion.div
                 className="hawk-card bg-amber-50 border-amber-200"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -114,8 +120,8 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </motion.div>
-              
-              <motion.div 
+
+              <motion.div
                 className="hawk-card bg-green-50 border-green-200"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -133,8 +139,8 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </motion.div>
-              
-              <motion.div 
+
+              <motion.div
                 className="hawk-card bg-orange-50 border-orange-200"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -153,9 +159,9 @@ const AdminDashboard = () => {
                 </div>
               </motion.div>
             </div>
-            
+
             <h2 className="text-2xl font-bold text-hawk mb-6">User Overview</h2>
-            
+
             <div className="rounded-md border overflow-hidden bg-white">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -198,8 +204,8 @@ const AdminDashboard = () => {
                           {formatCurrency(userStat.totalBudget)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Button 
-                            variant="default" 
+                          <Button
+                            variant="default"
                             size="sm"
                             onClick={() => navigate(`/admin/user-requests/${userStat.userId}`)}
                             className="flex items-center gap-2"

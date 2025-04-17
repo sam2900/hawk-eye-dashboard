@@ -151,9 +151,9 @@ const RequestStatus = () => {
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>Cost Center: {request.costCenter}</p>
-                                <p>Discount: ₹{request.discount}</p>
-                                <p>Budget: ₹{request.availableBudget}</p>
-                                <p>Est. Cost: ₹{request.totalEstimatedCost}</p>
+                                <p>Discount: {request.discount}(R/HL)</p>
+                                <p>Budget: {request.availableBudget}(R/HL)</p>
+                                <p>Est. Cost: {request.totalEstimatedCost}(R/HL)</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>

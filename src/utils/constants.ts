@@ -46,21 +46,80 @@ export const MOCK_PASSWORDS = {
 };
 
 export const DEAL_TYPES = [
-  "Standard Promotion",
-  "Seasonal Discount",
-  "Volume-based Deal",
-  "New Product Launch",
-  "Loyalty Program",
-  "Bundle Offer"
+  "Obsolescence",
+  "Volume Uplift",
+  "Retention",
+  "Availability",
+  "EDLP",
+  "Pricing",
+  "Other - provide reason (reason dene keliye ek chota text box de sakte ho when they select other)"
 ];
 
+export const MATERIAL_TYPES = [
+  'ZA_000000000000092052',
+  'ZA_000000000000093940',
+  'ZA_000000000000094762',
+  'ZA_000000000000094505',
+  'ZA_000000000000094523',
+  'ZA_000000000000094045',
+  'ZA_000000000000094182',
+  'ZA_000000000000094334',
+  'ZA_000000000000094435',
+  'ZA_000000000000094070',
+  'ZA_000000000000085021'
+]
+export const SEARCH_OUTLET = [
+  'ZA_0000303394',
+  'ZA_0000307961',
+  'ZA_0000308329',
+  'ZA_0000308540',
+  'ZA_0000308564',
+  'ZA_0000308719',
+  'ZA_0000309391',
+  'ZA_0000309432'
+]
+export const SALES_AREA = [
+  "POLOKWANE SOUTH",
+  "POLOKWANE EAST",
+  "ISANDO NORTH",
+  "POLOKWANE WEST",
+  "TZANEEN",
+  "TSHWANE URBAN IN HOME",
+  "MSUNDUZI EAST",
+  "MAFIKENG HYBRID WEST",
+  "DWARSLOOP",
+  "POLOKWANE CENTRAL",
+  "KIMBERLEY HYBRID"
+]
+
+export const BRAND_NAME = [
+  'CORONA 355 NRB',
+  'BLACK CROWN GIN AND TONIC 440 CAN',
+  'STELLA ARTOIS 620 NRB',
+  'BRUTAL FRUIT STRAWBERRY ROUGE 500 CAN',
+  'BRUTAL FRUIT LITCHI SECHE 500 CAN',
+  'BRUTAL FRUIT RUBY APPLE 500 CAN',
+  'CARLING BLACK LABEL 750 RB',
+  'CASTLE DOUBLE MALT 660 RB',
+  'BRUTAL FRUIT RUBY APPLE 620 NRB',
+  'CASTLE LITE 500 CAN'
+]
+export const BRAND_FAMILY = [
+  'CORONA',
+  'BLACK CROWN',
+  'STELLA ARTOIS',
+  'BRUTAL FRUIT',
+  'CARLING BLACK LABEL',
+  'CASTLE DOUBLE MALT',
+  'FLYING FISH'
+]
 export const TRADE_CLASSES = [
-  "Modern Trade",
-  "General Trade",
-  "Key Accounts",
-  "Horeca",
-  "Wholesale",
-  "E-commerce"
+  "CLASSIC TAVERN",
+  "WS MAIN MARKET LARGE",
+  "CS TAKE AWAY",
+  "SS SPECIALITY LIQUOR",
+  "WS MAIN MARKET LARGE",
+  "SS LOCAL NEIGHBOURHD"
 ];
 
 export interface Route {

@@ -38,34 +38,34 @@ const UserRequests = () => {
   const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
   const [bulkActionOpen, setBulkActionOpen] = useState(false);
   const user = getCurrentUser();
-  
+
   useEffect(() => {
     // If not authenticated or not a district manager, redirect
     if (!isAuthenticated()) {
       navigate("/login");
       return;
     }
-    
+
     if (user && user.role !== "district_manager") {
       navigate("/dashboard");
       return;
     }
-    
+
     if (!userId) {
       navigate("/admin");
       return;
     }
-    
+
     loadUserRequests();
-    
+
   }, [navigate, user, userId]);
-  
+
   const loadUserRequests = () => {
     // Get all requests and filter for this user
     const allRequests = getAllRequests();
     const userRequests = allRequests.filter(req => req.userId === userId && req.submittedForApproval);
     setRequests(userRequests);
-    
+
     // Get user info from session storage
     const users = JSON.parse(sessionStorage.getItem('hawk_eye_users') || '[]');
     const userInfo = users.find((u: any) => u.id === userId);
@@ -83,10 +83,10 @@ const UserRequests = () => {
   const getValidityPeriod = (start: string, end: string) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    
+
     return `${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`;
   };
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-GB', {
@@ -97,31 +97,31 @@ const UserRequests = () => {
       minute: '2-digit'
     }).format(date);
   };
-  
+
   const handleShowDetails = (request: Request) => {
     setSelectedRequest(request);
     setDetailsOpen(true);
   };
-  
+
   const handleAction = (request: Request, type: "approved" | "rejected") => {
     setSelectedRequest(request);
     setActionType(type);
     setFeedbackOpen(true);
   };
-  
+
   const handleBulkAction = (type: "approved" | "rejected") => {
     if (selectedRequests.length === 0) {
       toast.error("Please select at least one request");
       return;
     }
-    
+
     setActionType(type);
     setBulkActionOpen(true);
   };
-  
+
   const handleCheckboxChange = (id: string) => {
-    setSelectedRequests(prev => 
-      prev.includes(id) 
+    setSelectedRequests(prev =>
+      prev.includes(id)
         ? prev.filter(requestId => requestId !== id)
         : [...prev, id]
     );
@@ -137,53 +137,53 @@ const UserRequests = () => {
       setSelectedRequests([]);
     }
   };
-  
+
   const handleSubmitAction = () => {
     if (selectedRequest && actionType) {
       updateRequestStatus(selectedRequest.id, actionType, feedback);
-      
+
       // Update local state
-      setRequests(prev => 
-        prev.map(req => 
-          req.id === selectedRequest.id 
-            ? { ...req, status: actionType, feedback } 
+      setRequests(prev =>
+        prev.map(req =>
+          req.id === selectedRequest.id
+            ? { ...req, status: actionType, feedback }
             : req
         )
       );
-      
+
       // Close dialogs
       setFeedbackOpen(false);
       setFeedback("");
       setActionType(null);
     }
   };
-  
+
   const handleSubmitBulkAction = () => {
     if (!actionType || selectedRequests.length === 0) return;
-    
+
     // Process each selected request
     selectedRequests.forEach(requestId => {
       updateRequestStatus(requestId, actionType, feedback);
     });
-    
+
     // Update local state
-    setRequests(prev => 
-      prev.map(req => 
-        selectedRequests.includes(req.id) 
-          ? { ...req, status: actionType, feedback } 
+    setRequests(prev =>
+      prev.map(req =>
+        selectedRequests.includes(req.id)
+          ? { ...req, status: actionType, feedback }
           : req
       )
     );
-    
+
     // Reset state
     setBulkActionOpen(false);
     setFeedback("");
     setActionType(null);
     setSelectedRequests([]);
-    
+
     toast.success(`${selectedRequests.length} requests ${actionType}`);
   };
-  
+
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -191,19 +191,19 @@ const UserRequests = () => {
 
   return (
     <>
-      <div 
+      <div
         className="min-h-screen pt-16 pb-12 bg-cover bg-center"
         style={{ backgroundImage: "url('/lovable-uploads/bfbef245-8604-4839-ab07-ed06fa15252e.png')" }}
       >
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        
+
         {/* Header */}
         <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-white/10">
           <div className="container mx-auto flex justify-between items-center h-16 px-4">
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => navigate("/admin")}
                 className="flex items-center gap-2 text-white/80 hover:text-white"
               >
@@ -212,8 +212,8 @@ const UserRequests = () => {
               </Button>
               <h1 className="text-xl font-bold text-hawk ml-4">User Requests</h1>
             </div>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               size="sm"
               onClick={handleLogout}
               className="flex items-center gap-2"
@@ -223,9 +223,9 @@ const UserRequests = () => {
             </Button>
           </div>
         </header>
-        
+
         <div className="container mx-auto max-w-6xl relative z-10 pt-8">
-          <motion.div 
+          <motion.div
             className="hawk-card p-8 bg-white/90 backdrop-blur-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -239,14 +239,14 @@ const UserRequests = () => {
                 <p className="text-sm text-gray-500">User ID: {userInfo.id}</p>
               </div>
             )}
-            
+
             {/* Bulk actions */}
             {selectedRequests.length > 0 && (
               <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
                 <p className="text-sm">{selectedRequests.length} requests selected</p>
                 <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     className="text-green-600"
                     onClick={() => handleBulkAction("approved")}
@@ -254,8 +254,8 @@ const UserRequests = () => {
                     <CheckCircle size={16} className="mr-2" />
                     Approve All
                   </Button>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     className="text-red-600"
                     onClick={() => handleBulkAction("rejected")}
@@ -266,13 +266,13 @@ const UserRequests = () => {
                 </div>
               </div>
             )}
-            
+
             <div className="rounded-md border mb-6 overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">
-                      <Checkbox 
+                      <Checkbox
                         checked={selectedRequests.length > 0 && selectedRequests.length === requests.filter(r => r.status === "pending").length}
                         onCheckedChange={handleSelectAll}
                       />
@@ -291,8 +291,8 @@ const UserRequests = () => {
                     requests.map((request) => (
                       <TableRow key={request.id}>
                         <TableCell>
-                          <Checkbox 
-                            id={`select-${request.id}`} 
+                          <Checkbox
+                            id={`select-${request.id}`}
                             checked={selectedRequests.includes(request.id)}
                             onCheckedChange={() => handleCheckboxChange(request.id)}
                             disabled={request.status !== "pending"}
@@ -302,19 +302,18 @@ const UserRequests = () => {
                         <TableCell>{request.material}</TableCell>
                         <TableCell>{getValidityPeriod(request.validityStart, request.validityEnd)}</TableCell>
                         <TableCell>{request.costCenter}</TableCell>
-                        <TableCell>₹{request.availableBudget}</TableCell>
+                        <TableCell>{request.availableBudget}(R/HL)</TableCell>
                         <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            request.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.status === 'approved' ? 'bg-green-100 text-green-800' :
                             request.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                           </span>
                         </TableCell>
                         <TableCell className="text-right space-x-1">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => handleShowDetails(request)}
                           >
@@ -322,16 +321,16 @@ const UserRequests = () => {
                           </Button>
                           {request.status === 'pending' && (
                             <>
-                              <Button 
-                                variant="ghost" 
+                              <Button
+                                variant="ghost"
                                 size="icon"
                                 className="text-green-600"
                                 onClick={() => handleAction(request, "approved")}
                               >
                                 <CheckCircle size={16} />
                               </Button>
-                              <Button 
-                                variant="ghost" 
+                              <Button
+                                variant="ghost"
                                 size="icon"
                                 className="text-red-600"
                                 onClick={() => handleAction(request, "rejected")}
@@ -356,7 +355,7 @@ const UserRequests = () => {
           </motion.div>
         </div>
       </div>
-      
+
       {/* Request Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="sm:max-w-md">
@@ -366,7 +365,7 @@ const UserRequests = () => {
               Submitted {selectedRequest && formatDate(selectedRequest.createdAt)}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedRequest && (
             <div className="grid grid-cols-2 gap-4 py-4">
               <div>
@@ -387,15 +386,15 @@ const UserRequests = () => {
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-1">Discount:</h4>
-                <p className="text-sm">₹{selectedRequest.discount}</p>
+                <p className="text-sm">{selectedRequest.discount}(R/HL)</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-1">Available Budget:</h4>
-                <p className="text-sm">₹{selectedRequest.availableBudget}</p>
+                <p className="text-sm">{selectedRequest.availableBudget}(R/HL)</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-1">Total Estimated Cost:</h4>
-                <p className="text-sm">₹{selectedRequest.totalEstimatedCost}</p>
+                <p className="text-sm">{selectedRequest.totalEstimatedCost}(R/HL)</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-1">Search Outlet:</h4>
@@ -411,15 +410,14 @@ const UserRequests = () => {
               </div>
               <div className="col-span-2">
                 <h4 className="text-sm font-semibold mb-1">Status:</h4>
-                <p className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                  selectedRequest.status === 'approved' ? 'bg-green-100 text-green-800' :
+                <p className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${selectedRequest.status === 'approved' ? 'bg-green-100 text-green-800' :
                   selectedRequest.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                  'bg-yellow-100 text-yellow-800'
-                }`}>
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
                   {selectedRequest.status.charAt(0).toUpperCase() + selectedRequest.status.slice(1)}
                 </p>
               </div>
-              
+
               {selectedRequest.feedback && (
                 <div className="col-span-2">
                   <h4 className="text-sm font-semibold mb-1">Feedback:</h4>
@@ -428,7 +426,7 @@ const UserRequests = () => {
               )}
             </div>
           )}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDetailsOpen(false)}>
               Close
@@ -436,7 +434,7 @@ const UserRequests = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Feedback Dialog */}
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <DialogContent className="sm:max-w-md">
@@ -446,7 +444,7 @@ const UserRequests = () => {
               {actionType === 'approved' ? 'Approve' : 'Reject'} this request with optional feedback
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <Textarea
               placeholder="Enter feedback for this request..."
@@ -455,7 +453,7 @@ const UserRequests = () => {
               className="min-h-[100px]"
             />
           </div>
-          
+
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setFeedbackOpen(false)}>
               Cancel
@@ -469,7 +467,7 @@ const UserRequests = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Bulk Action Dialog */}
       <Dialog open={bulkActionOpen} onOpenChange={setBulkActionOpen}>
         <DialogContent className="sm:max-w-md">
@@ -479,7 +477,7 @@ const UserRequests = () => {
               {actionType === 'approved' ? 'Approve' : 'Reject'} {selectedRequests.length} requests with the same feedback
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <Textarea
               placeholder="Enter feedback for these requests..."
@@ -488,7 +486,7 @@ const UserRequests = () => {
               className="min-h-[100px]"
             />
           </div>
-          
+
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setBulkActionOpen(false)}>
               Cancel

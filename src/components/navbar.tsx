@@ -6,6 +6,8 @@ import { User, Home, PlusCircle, BarChart2, Database, LogOut, Menu, X } from "lu
 import { getCurrentUser, logout } from "../utils/auth";
 import { APP_NAME, APP_ROUTES, User as UserType } from "../utils/constants";
 import { useIsMobile } from "../hooks/use-mobile";
+import dark from "../assets/dark.png"
+import hawk from "../assets/hawk.svg";
 
 const Navbar = () => {
   const [user, setUser] = useState<UserType | null>(null);
@@ -13,16 +15,16 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  
+
   useEffect(() => {
     setUser(getCurrentUser());
   }, [location]);
-  
+
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
-  
+
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case "Home": return <Home size={20} />;
@@ -33,10 +35,10 @@ const Navbar = () => {
     }
   };
 
-  const filteredRoutes = APP_ROUTES.filter(route => 
+  const filteredRoutes = APP_ROUTES.filter(route =>
     user && user.role && route.roles.includes(user.role as any)
   );
-  
+
   // Close mobile menu when navigating
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -47,19 +49,28 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
-            <div className="text-hawk font-bold text-xl mr-8">{APP_NAME}</div>
-            
+            {/* <div className="text-hawk font-bold text-xl mr-8">{APP_NAME}</div> */}
+            <motion.div
+              initial={{ scale: 0.1, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className=" w-14 h-15 mt-0.5 mr-2 rounded-full bg-white flex items-center justify-center drop-shadow-xl"
+            >
+              <img src={hawk} alt="My SVG Image" width="100" height="100" />
+
+            </motion.div>
+            <img src={dark} alt="" width={150} />
+
             {!isMobile && (
               <nav className="hidden md:flex space-x-1">
                 {filteredRoutes.map((route) => (
                   <motion.a
                     key={route.path}
                     href={route.path}
-                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      location.pathname === route.path
-                        ? "text-hawk bg-white/5"
-                        : "text-white/70 hover:text-white hover:bg-white/5"
-                    }`}
+                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${location.pathname === route.path
+                      ? "text-hawk bg-white/5"
+                      : "text-white/70 hover:text-white hover:bg-white/5"
+                      }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -70,11 +81,11 @@ const Navbar = () => {
               </nav>
             )}
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {user && (
               <>
-                <motion.div 
+                <motion.div
                   className="hidden md:flex items-center space-x-2 pr-4 text-white/70"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -92,7 +103,7 @@ const Navbar = () => {
                     </div>
                   )}
                 </motion.div>
-                
+
                 <motion.button
                   className="hidden md:flex items-center justify-center px-3 py-2 rounded-md bg-red-600 text-white text-sm font-medium transition-colors hover:bg-red-700"
                   onClick={handleLogout}
@@ -102,7 +113,7 @@ const Navbar = () => {
                   <LogOut size={18} />
                   <span className="ml-2">Logout</span>
                 </motion.button>
-                
+
                 {/* Mobile menu button */}
                 <motion.button
                   className="md:hidden flex items-center justify-center w-10 h-10 rounded-md text-white"
@@ -117,7 +128,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -148,17 +159,16 @@ const Navbar = () => {
                   </div>
                 </div>
               )}
-              
+
               <nav className="flex flex-col space-y-2">
                 {filteredRoutes.map((route) => (
                   <motion.a
                     key={route.path}
                     href={route.path}
-                    className={`flex items-center px-4 py-3 rounded-lg text-base font-medium ${
-                      location.pathname === route.path
-                        ? "text-hawk bg-white/5"
-                        : "text-white/80 hover:text-white hover:bg-white/5"
-                    }`}
+                    className={`flex items-center px-4 py-3 rounded-lg text-base font-medium ${location.pathname === route.path
+                      ? "text-hawk bg-white/5"
+                      : "text-white/80 hover:text-white hover:bg-white/5"
+                      }`}
                     whileHover={{ scale: 1.03, x: 5 }}
                     whileTap={{ scale: 0.97 }}
                   >
@@ -166,7 +176,7 @@ const Navbar = () => {
                     <span className="ml-3">{route.label}</span>
                   </motion.a>
                 ))}
-                
+
                 <motion.button
                   className="flex items-center px-4 py-3 rounded-lg text-base font-medium text-red-400 hover:text-red-300 hover:bg-white/5 mt-4"
                   onClick={handleLogout}

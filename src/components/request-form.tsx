@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { DEAL_TYPES, TRADE_CLASSES } from "../utils/constants";
+import { DEAL_TYPES, TRADE_CLASSES, BRAND_NAME, MATERIAL_TYPES, SEARCH_OUTLET, SALES_AREA, BRAND_FAMILY } from "../utils/constants";
 import { saveRequest } from "../utils/request-utils";
 
 const RequestForm = () => {
@@ -171,9 +171,10 @@ const RequestForm = () => {
     {
       id: "material",
       label: "Material",
-      type: "text",
+      type: "select",
       required: true,
       placeholder: "Enter material",
+      options: MATERIAL_TYPES,
       colSpan: 1,
     },
     {
@@ -193,7 +194,7 @@ const RequestForm = () => {
     },
     {
       id: "discount",
-      label: "Discount (Rs.)",
+      label: "Discount (R/HL)",
       type: "number",
       required: true,
       colSpan: 1,
@@ -217,7 +218,8 @@ const RequestForm = () => {
     {
       id: "searchOutlet",
       label: "Search Outlet",
-      type: "text",
+      type: "select",
+      options: SEARCH_OUTLET,
       required: true,
       placeholder: "Search outlet",
       colSpan: 1,
@@ -233,10 +235,29 @@ const RequestForm = () => {
     {
       id: "salesArea",
       label: "Sales Area",
-      type: "text",
+      type: "select",
+      options: SALES_AREA,
       required: true,
       placeholder: "Enter sales area",
-      colSpan: 2,
+      colSpan: 1,
+    },
+    {
+      id: "brandName",
+      label: "Brand Name",
+      type: "select",
+      required: true,
+      placeholder: "Select Brand Name",
+      options: BRAND_NAME,
+      colSpan: 1,
+    },
+    {
+      id: "brandFamily",
+      label: "Brand Family",
+      type: "select",
+      required: true,
+      placeholder: "Select Brand Name",
+      options: BRAND_FAMILY,
+      colSpan: 1,
     },
   ];
 
